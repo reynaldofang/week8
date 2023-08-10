@@ -45,38 +45,36 @@ router.get("/transactions/:id", (req, res) => {
 });
 // Update a transcations by ID using PUT
 router.put("/transactions/:id", (req, res) => {
-    const id = parseInt(req.params.id);
+    const { id } = req.params;
     const { amount, type, description } = req.body;
-    const transactionIndex = transactions.findIndex((trans) => trans.id === id);
-    if (transactionIndex === -1) {
+    if (!amount || isNaN(amount)) {
+        return res.status(400).json({ error: "Invalid amount" });
+    }
+    const transactionToUpdate = transactions.find((transaction) => transaction.id === parseInt(id));
+    if (!transactionToUpdate) {
         return res.status(404).json({ error: "Transaction not found" });
     }
-    const previousTransaction = transactions[transactionIndex];
-    const previousAmount = previousTransaction.amount;
-    const newAmount = parseFloat(amount);
-    if (isNaN(newAmount)) {
-        return res.status(400).json({ error: "Invalid amount value" });
+    // Adjust the balance by reversing the previous transaction's effect
+    if (transactionToUpdate.type === "income") {
+        balance -= transactionToUpdate.amount;
     }
-    const amountChange = newAmount - previousAmount;
-    console.log(amountChange);
-    // Determine the change in balance based on transaction type
-    let balanceChange = 0;
-    console.log("berapa balance", balanceChange);
+    else if (transactionToUpdate.type === "expense") {
+        balance += transactionToUpdate.amount;
+    }
+    // Update the transaction with new values
+    transactionToUpdate.amount = amount;
+    transactionToUpdate.type = type;
+    transactionToUpdate.description = description;
+    // Adjust the balance with the effect of the updated transaction
     if (type === "income") {
-        balanceChange = amountChange;
+        balance += amount;
     }
     else if (type === "expense") {
-        balanceChange -= -amountChange; // Change this line to a negative value
+        balance -= amount;
     }
-    console.log("Previous Balance:", balance); // Add this line to log previous balance
-    console.log("Balance Change:", balanceChange); // Add this line to log balance change
-    transactions[transactionIndex] = Object.assign(Object.assign({}, previousTransaction), { amount: newAmount, type,
-        description });
-    // Update the balance
-    balance += balanceChange;
     res.json({
         message: "Transaction updated successfully",
-        transaction: transactions[transactionIndex],
+        transaction: transactionToUpdate,
         balance,
     });
 });
