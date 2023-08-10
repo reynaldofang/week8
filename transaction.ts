@@ -45,7 +45,7 @@ router.get("/transactions", (req, res) => {
 
 // Read a single transcations
 
-router.get('/transactions/:id', (req, res) => {
+router.get("/transactions/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const transaction = transactions.find((trans) => trans.id === id);
 
@@ -54,6 +54,109 @@ router.get('/transactions/:id', (req, res) => {
   }
 
   res.json(transaction);
+});
+
+// Update a transcations by ID using PUT
+
+router.put("/transactions/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const { amount, type, description } = req.body;
+
+  const transactionIndex = transactions.findIndex((trans) => trans.id === id);
+
+  if (transactionIndex === -1) {
+    return res.status(404).json({ error: "Transaction not found" });
+  }
+
+  const previousTransaction = transactions[transactionIndex];
+  const previousAmount = previousTransaction.amount;
+
+  const newAmount = parseFloat(amount);
+
+  if (isNaN(newAmount)) {
+    return res.status(400).json({ error: "Invalid amount value" });
+  }
+
+  const amountChange = newAmount - previousAmount;
+
+  console.log(amountChange);
+
+  // Determine the change in balance based on transaction type
+  let balanceChange = 0;
+  console.log("berapa balance", balanceChange);
+  if (type === "income") {
+    balanceChange = amountChange;
+  } else if (type === "expense") {
+    balanceChange -= -amountChange; // Change this line to a negative value
+  }
+
+  console.log("Previous Balance:", balance); // Add this line to log previous balance
+  console.log("Balance Change:", balanceChange); // Add this line to log balance change
+
+  transactions[transactionIndex] = {
+    ...previousTransaction,
+    amount: newAmount,
+    type,
+    description,
+  };
+
+  // Update the balance
+  balance += balanceChange;
+
+  res.json({
+    message: "Transaction updated successfully",
+    transaction: transactions[transactionIndex],
+    balance,
+  });
+});
+
+// Update a transaction by ID using PATCH
+router.patch("/transactions/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const updates = req.body;
+
+  const transactionIndex = transactions.findIndex((trans) => trans.id === id);
+
+  if (transactionIndex === -1) {
+    return res.status(404).json({ error: "Transaction not found" });
+  }
+
+  transactions[transactionIndex] = {
+    ...transactions[transactionIndex],
+    ...updates,
+  };
+
+  res.json({
+    message: "Transaction updated successfully",
+    transaction: transactions[transactionIndex],
+  });
+});
+
+// Delete a transcations
+
+router.delete("/transactions/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const transactionIndex = transactions.findIndex((trans) => trans.id === id);
+
+  if (transactionIndex === -1) {
+    return res.status(404).json({ error: "Transaction not found" });
+  }
+
+  const deletedTransaction = transactions[transactionIndex];
+  const transactionAmount = deletedTransaction.amount;
+
+  if (deletedTransaction.type === "income") {
+    balance -= transactionAmount; // Subtract transactionAmount from balance
+  } else if (deletedTransaction.type === "expense") {
+    balance += transactionAmount; // Add transactionAmount to balance
+  }
+
+  transactions.splice(transactionIndex, 1); // Remove the transaction from the array
+
+  res.json({
+    message: "Transaction deleted successfully",
+    balance,
+  });
 });
 
 export default router;
