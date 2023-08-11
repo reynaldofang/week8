@@ -1,65 +1,177 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var _this = this;
+// scripts.ts
+var currentBalance = 0;
 document.addEventListener("DOMContentLoaded", function () {
-    var transactionForm = document.getElementById("transactionForm");
-    transactionForm.addEventListener("submit", function (event) { return __awaiter(_this, void 0, void 0, function () {
-        var amount, type, description, response, data;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    event.preventDefault();
-                    amount = document.getElementById("transactionText").value;
-                    type = document.getElementById("transactionType").value;
-                    description = document.getElementById("transactionDescription").value;
-                    return [4 /*yield*/, fetch("/transactions", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({ amount: amount, type: type, description: description }),
-                        })];
-                case 1:
-                    response = _a.sent();
-                    return [4 /*yield*/, response.json()];
-                case 2:
-                    data = _a.sent();
-                    return [2 /*return*/];
-            }
+    var transactionForm = document.querySelector("#transactionForm");
+    var noTransactionMessage = document.getElementById("noTransactionMessage");
+    var balanceElement = document.getElementById("balance");
+    if (transactionForm) {
+        transactionForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            var transactionType = document.getElementById("transaction").value;
+            var transactionDescription = document.getElementById("description").value;
+            var transactionAmount = parseFloat(document.getElementById("amount").value);
+            var newTransaction = {
+                type: transactionType,
+                description: transactionDescription,
+                amount: transactionAmount,
+            };
+            fetch("http://localhost:8000/api/transactions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(newTransaction),
+            })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                console.log("New transaction added:", data);
+                if (transactionForm) {
+                    transactionForm.reset();
+                }
+                // Update balance based on the new transaction type
+                if (newTransaction.type === "income") {
+                    currentBalance += newTransaction.amount;
+                }
+                else if (newTransaction.type === "expense") {
+                    currentBalance -= newTransaction.amount;
+                }
+                // Update balance display
+                updateBalanceDisplay();
+                fetchTransactionList();
+            })
+                .catch(function (error) {
+                console.error("Error adding new transaction:", error);
+            });
         });
-    }); });
+    }
+    function updateBalanceDisplay() {
+        var formattedBalance = formatCurrency(currentBalance);
+        balanceElement.textContent = formattedBalance;
+    }
+    function formatCurrency(amount) {
+        var formatter = new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+        return formatter.format(amount);
+    }
+    function fetchTransactionList() {
+        var transactionList = document.getElementById("transactionList");
+        if (transactionList && noTransactionMessage) {
+            fetch("http://localhost:8000/api/transactions")
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                console.log("Fetched transactions:", data.transactions);
+                transactionList.innerHTML = ""; // Clear previous items
+                if (data.transactions.length === 0) {
+                    noTransactionMessage.style.display = "block";
+                }
+                else {
+                    noTransactionMessage.style.display = "none";
+                    data.transactions.forEach(function (transaction) {
+                        var card = document.createElement("div");
+                        card.className = "card";
+                        card.innerHTML = "\n              <div class=\"card-body\">\n                <h5 class=\"card-title\">ID: ".concat(transaction.id, "</h5>\n                <p class=\"card-text\">Amount: ").concat(transaction.amount, "</p>\n                <p class=\"card-text\">Type: ").concat(transaction.type, "</p>\n                <p class=\"card-text\">Description: ").concat(transaction.description, "</p>\n                <button class=\"btn btn-secondary me-2 edit-button\">Edit</button>\n                <button class=\"btn btn-danger delete-button\">Delete</button>\n                <div class=\"edit-form\" style=\"display: none;\">\n                  <input type=\"number\" class=\"form-control\" id=\"editAmount\" placeholder=\"Amount\" value=\"").concat(transaction.amount, "\">\n                  <select class=\"form-select mt-2\" id=\"editTransactionType\">\n                    <option value=\"income\" ").concat(transaction.type === "income" ? "selected" : "", ">Income</option>\n                    <option value=\"expense\" ").concat(transaction.type === "expense" ? "selected" : "", ">Expense</option>\n                  </select>\n                  <input type=\"text\" class=\"form-control mt-2\" id=\"editDescription\" placeholder=\"Description\" value=\"").concat(transaction.description, "\">\n                  <button class=\"btn btn-primary mt-2 update-button\">Update</button>\n                </div>\n              </div>\n            ");
+                        var editButton = card.querySelector(".edit-button");
+                        editButton.addEventListener("click", function () {
+                            var shouldEdit = window.confirm("Apakah Anda yakin ingin mengedit transaksi ini?");
+                            if (shouldEdit) {
+                                editTransaction(transaction.id);
+                            }
+                        });
+                        var deleteButton = card.querySelector(".delete-button");
+                        deleteButton.addEventListener("click", function () {
+                            var shouldDelete = window.confirm("Apakah Anda yakin ingin menghapus transaksi ini?");
+                            if (shouldDelete) {
+                                deleteTransaction(transaction.id);
+                            }
+                        });
+                        transactionList.appendChild(card);
+                    });
+                    // Recalculate balance and update display
+                    currentBalance = 0;
+                    data.transactions.forEach(function (transaction) {
+                        if (transaction.type === "income") {
+                            currentBalance += transaction.amount;
+                        }
+                        else if (transaction.type === "expense") {
+                            currentBalance -= transaction.amount;
+                        }
+                    });
+                    updateBalanceDisplay();
+                }
+            })
+                .catch(function (error) {
+                console.error("Error fetching transaction data:", error);
+            });
+        }
+    }
+    function deleteTransaction(transactionId) {
+        fetch("http://localhost:8000/api/transactions/".concat(transactionId), {
+            method: "DELETE",
+        })
+            .then(function (response) { return response.json(); })
+            .then(function () {
+            console.log("Transaction with ID ".concat(transactionId, " deleted."));
+            // Fetch and update the transaction list
+            fetchTransactionList();
+        })
+            .catch(function (error) {
+            console.error("Error deleting transaction with ID ".concat(transactionId, ":"), error);
+        });
+    }
+    function editTransaction(transactionId) {
+        fetch("http://localhost:8000/api/transactions/".concat(transactionId))
+            .then(function (response) { return response.json(); })
+            .then(function (transaction) {
+            var editForm = document.getElementById("editForm");
+            var editDescription = editForm.querySelector("#editDescription");
+            var editAmount = editForm.querySelector("#editAmount");
+            var editType = editForm.querySelector("#editType");
+            editDescription.value = transaction.description;
+            editAmount.value = transaction.amount.toString();
+            editType.value = transaction.type;
+            // Check if the dataset attribute exists before setting it
+            if (editForm.dataset) {
+                editForm.dataset.transactionId = transactionId.toString();
+            }
+            editForm.style.display = "block";
+            editForm.addEventListener("submit", function (event) {
+                var _a;
+                event.preventDefault();
+                var newDescription = editDescription.value;
+                var newAmount = parseFloat(editAmount.value);
+                var newType = editType.value;
+                var updatedTransaction = {
+                    description: newDescription,
+                    amount: newAmount,
+                    type: newType,
+                };
+                // Get the transaction ID from the data attribute
+                var editedTransactionId = parseInt(((_a = editForm.dataset) === null || _a === void 0 ? void 0 : _a.transactionId) || "");
+                fetch("http://localhost:8000/api/transactions/".concat(editedTransactionId), {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(updatedTransaction),
+                })
+                    .then(function (response) { return response.json(); })
+                    .then(function () {
+                    console.log("Transaction with ID ".concat(editedTransactionId, " updated."));
+                    editForm.style.display = "none";
+                    fetchTransactionList();
+                })
+                    .catch(function (error) {
+                    console.error("Error updating transaction with ID ".concat(editedTransactionId, ":"), error);
+                });
+            });
+        })
+            .catch(function (error) {
+            console.error("Error fetching transaction details for edit:", error);
+        });
+    }
+    fetchTransactionList();
 });

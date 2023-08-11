@@ -32,6 +32,7 @@ router.post("/transactions", (req, res) => {
 });
 // Read all transactions
 router.get("/transactions", (req, res) => {
+    console.log("GET request received at /api/transactions");
     res.json({ transactions, balance });
 });
 // Read a single transcations
