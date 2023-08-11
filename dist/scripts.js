@@ -1,6 +1,6 @@
 "use strict";
-// scripts.ts
 let currentBalance = 0;
+const apiUrl = "https://rey-api-week8.onrender.com/";
 document.addEventListener("DOMContentLoaded", () => {
     const transactionForm = document.querySelector("#transactionForm");
     const noTransactionMessage = document.getElementById("noTransactionMessage");
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 description: transactionDescription,
                 amount: transactionAmount,
             };
-            fetch("http://localhost:8000/api/transactions", {
+            fetch(`${apiUrl}/api/transactions`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function fetchTransactionList() {
         const transactionList = document.getElementById("transactionList");
         if (transactionList && noTransactionMessage) {
-            fetch("http://localhost:8000/api/transactions")
+            fetch(`${apiUrl}/api/transactions`)
                 .then((response) => response.json())
                 .then((data) => {
                 console.log("Fetched transactions:", data.transactions);
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     function deleteTransaction(transactionId) {
-        fetch(`http://localhost:8000/api/transactions/${transactionId}`, {
+        fetch(`${apiUrl}/api/transactions/${transactionId}`, {
             method: "DELETE",
         })
             .then((response) => response.json())
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     function editTransaction(transactionId) {
-        fetch(`http://localhost:8000/api/transactions/${transactionId}`)
+        fetch(`${apiUrl}/api/transactions/${transactionId}`)
             .then((response) => response.json())
             .then((transaction) => {
             const editForm = document.getElementById("editForm");
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
                 // Get the transaction ID from the data attribute
                 const editedTransactionId = parseInt(((_a = editForm.dataset) === null || _a === void 0 ? void 0 : _a.transactionId) || "");
-                fetch(`http://localhost:8000/api/transactions/${editedTransactionId}`, {
+                fetch(`${apiUrl}/api/transactions/${editedTransactionId}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",

@@ -1,6 +1,6 @@
-// scripts.ts
-
 let currentBalance: number = 0;
+
+const apiUrl = "https://rey-api-week8.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
   const transactionForm = document.querySelector(
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         amount: transactionAmount,
       };
 
-      fetch("http://localhost:8000/api/transactions", {
+      fetch(`${apiUrl}/api/transactions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function fetchTransactionList() {
     const transactionList = document.getElementById("transactionList");
     if (transactionList && noTransactionMessage) {
-      fetch("http://localhost:8000/api/transactions")
+      fetch(`${apiUrl}/api/transactions`)
         .then((response) => response.json())
         .then((data) => {
           console.log("Fetched transactions:", data.transactions);
@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function deleteTransaction(transactionId: number) {
-    fetch(`http://localhost:8000/api/transactions/${transactionId}`, {
+    fetch(`${apiUrl}/api/transactions/${transactionId}`, {
       method: "DELETE",
     })
       .then((response) => response.json())
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function editTransaction(transactionId: number) {
-    fetch(`http://localhost:8000/api/transactions/${transactionId}`)
+    fetch(`${apiUrl}/api/transactions/${transactionId}`)
       .then((response) => response.json())
       .then((transaction) => {
         const editForm = document.getElementById("editForm") as HTMLFormElement;
@@ -230,16 +230,13 @@ document.addEventListener("DOMContentLoaded", () => {
             editForm.dataset?.transactionId || ""
           );
 
-          fetch(
-            `http://localhost:8000/api/transactions/${editedTransactionId}`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(updatedTransaction),
-            }
-          )
+          fetch(`${apiUrl}/api/transactions/${editedTransactionId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedTransaction),
+          })
             .then((response) => response.json())
             .then(() => {
               console.log(

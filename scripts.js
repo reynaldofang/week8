@@ -1,5 +1,5 @@
-// scripts.ts
 var currentBalance = 0;
+var apiUrl = "https://rey-api-week8.onrender.com";
 document.addEventListener("DOMContentLoaded", function () {
     var transactionForm = document.querySelector("#transactionForm");
     var noTransactionMessage = document.getElementById("noTransactionMessage");
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 description: transactionDescription,
                 amount: transactionAmount,
             };
-            fetch("http://localhost:8000/api/transactions", {
+            fetch("".concat(apiUrl, "/api/transactions"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function fetchTransactionList() {
         var transactionList = document.getElementById("transactionList");
         if (transactionList && noTransactionMessage) {
-            fetch("http://localhost:8000/api/transactions")
+            fetch("".concat(apiUrl, "/api/transactions"))
                 .then(function (response) { return response.json(); })
                 .then(function (data) {
                 console.log("Fetched transactions:", data.transactions);
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     function deleteTransaction(transactionId) {
-        fetch("http://localhost:8000/api/transactions/".concat(transactionId), {
+        fetch("".concat(apiUrl, "/api/transactions/").concat(transactionId), {
             method: "DELETE",
         })
             .then(function (response) { return response.json(); })
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
     function editTransaction(transactionId) {
-        fetch("http://localhost:8000/api/transactions/".concat(transactionId))
+        fetch("".concat(apiUrl, "/api/transactions/").concat(transactionId))
             .then(function (response) { return response.json(); })
             .then(function (transaction) {
             var editForm = document.getElementById("editForm");
@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 };
                 // Get the transaction ID from the data attribute
                 var editedTransactionId = parseInt(((_a = editForm.dataset) === null || _a === void 0 ? void 0 : _a.transactionId) || "");
-                fetch("http://localhost:8000/api/transactions/".concat(editedTransactionId), {
+                fetch("".concat(apiUrl, "/api/transactions/").concat(editedTransactionId), {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
